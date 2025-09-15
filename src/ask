@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-ask() {
-    local PROMPT="$1"
-    printf $PROMPT
-    
-    read -r RESULT
-}

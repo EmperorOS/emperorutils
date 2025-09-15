@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if ! command -v zenity &> /dev/null; then
+    echo "[*] Zenity not found. Installing via epkg..."
+    epkg add zenity || { echo "[!] Failed to install Zenity."; exit 1; }
+fi
+
+declare -A APP_MAP
+while IFS= read -r file; do
+    NAME=$(grep -m1 "^Name=" "$file" | cut -d'=' -f2)
+    EXEC=$(grep -m1 "^Exec=" "$file" | cut -d'=' -f2 | sed 's/ %.//g')
+    if [[ -n "$NAME" && -n "$EXEC" ]]; then
+        APP_MAP["$NAME"]="$EXEC"
+    fi
+done < <(find /usr/share/applications -name "*.desktop")
+
+CHOICE=$(printf '%s\n' "${!APP_MAP[@]}" | sort | zenity --list \
+    --title="Apps Launcher" \
+    --column="Applications" \
+    --height=400 --width=300)
+
+if [[ -n "$CHOICE" ]]; then
+    CMD="${APP_MAP[$CHOICE]}"
+    eval "$CMD" &
+fi

@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+import sys
+import subprocess
+
+# --- Auto-install requests ---
+try:
+    import requests
+except ImportError:
+    subprocess.run([sys.executable, "-m", "pip", "install", "requests", "--break-system-packages"])
+    import requests
+
+# --- Argument parsing ---
+import argparse
+
+parser = argparse.ArgumentParser(
+    description="fetch - fetch HTTP requests easily"
+)
+parser.add_argument("url", help="URL to fetch")
+parser.add_argument("-X", "--method", default="GET", help="HTTP method (GET, POST, PUT, DELETE)")
+parser.add_argument("-H", "--header", action="append", help="HTTP header in 'Key:Value' format")
+parser.add_argument("-d", "--data", help="Data for POST/PUT requests")
+args = parser.parse_args()
+
+# --- Process headers ---
+headers = {}
+if args.header:
+    for h in args.header:
+        if ":" in h:
+            key, value = h.split(":", 1)
+            headers[key.strip()] = value.strip()
+
+# --- Make the request ---
+try:
+    response = requests.request(
+        method=args.method.upper(),
+        url=args.url,
+        headers=headers,
+        data=args.data
+    )
+    print(f"[*] Status: {response.status_code}")
+    content_type = response.headers.get("Content-Type", "")
+    if "application/json" in content_type:
+        print(response.json())
+    else:
+        print(response.text)
+except requests.RequestException as e:
+    print(f"[!] Request error: {e}")

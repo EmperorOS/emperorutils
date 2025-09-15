@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+TARGET="$1"
+
+if [[ -z "$TARGET" ]]; then
+    echo "Usage: $0 /path/to/folder"
+    exit 1
+fi
+
+if [[ ! -d "$TARGET" && ! -f "$TARGET" ]]; then
+    echo "'$TARGET' does not exist."
+    exit 1
+fi
+
+sudo chown -R "$USER:$USER" "$TARGET"
+
+find "$TARGET" -type d -exec chmod 755 {} +
+find "$TARGET" -type f -exec chmod 644 {} +

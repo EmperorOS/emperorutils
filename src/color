@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+FG="white"
+BG="black"
+
+declare -A COLORS=(
+    [black]=0
+    [red]=1
+    [green]=2
+    [yellow]=3
+    [blue]=4
+    [magenta]=5
+    [cyan]=6
+    [white]=7
+)
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --fg) FG="$2"; shift 2 ;;
+        --bg) BG="$2"; shift 2 ;;
+        *) echo "Unknown option $1"; exit 1 ;;
+    esac
+done
+
+if [[ -z "${COLORS[$FG]}" ]] || [[ -z "${COLORS[$BG]}" ]]; then
+    echo "Invalid color. Valid colors: ${!COLORS[@]}"
+    exit 1
+fi
+
+FG_CODE=$((30 + COLORS[$FG]))
+BG_CODE=$((40 + COLORS[$BG]))
+
+echo -e "\033[${FG_CODE};${BG_CODE}m"
+

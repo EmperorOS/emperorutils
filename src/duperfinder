@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+TARGET="$1"
+
+if [[ -z "$TARGET" ]]; then
+    echo "Usage: $0 /path/to/folder"
+    exit 1
+fi
+
+if [[ ! -d "$TARGET" ]]; then
+    echo "'$TARGET' is not a directory."
+    exit 1
+fi
+
+echo "Scanning for duplicate files in $TARGET ..."
+
+declare -A FILE_HASHES
+declare -A DUPES
+
+while IFS= read -r -d '' FILE; do
+    HASH=$(sha256sum "$FILE" | awk '{print $1}')
+    if [[ -n "${FILE_HASHES[$HASH]}" ]]; then
+        DUPES["$HASH"]+="$FILE"$'\n'
+    else
+        FILE_HASHES["$HASH"]="$FILE"
+    fi
+done < <(find "$TARGET" -type f -print0)
+
+if [[ ${#DUPES[@]} -eq 0 ]]; then
+    echo "No duplicates found."
+else
+    echo "Duplicates found:"
+    for HASH in "${!DUPES[@]}"; do
+        echo "-------------------------"
+        echo "Original: ${FILE_HASHES[$HASH]}"
+        echo "Duplicates:"
+        echo "${DUPES[$HASH]}"
+    done
+fi
