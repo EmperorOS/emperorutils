@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+rebuild-kernel() {
+    local SRC_DIR="$1"     
+    local NUM_CORES="${2:-$(nproc)}" 
+
+    if [[ -z "$SRC_DIR" || ! -d "$SRC_DIR" ]]; then
+        echo "Usage: rebuild-kernel <kernel-source-dir> [num-cores]"
+        return 1
+    fi
+
+    echo "Changing to kernel source: $SRC_DIR"
+    cd "$SRC_DIR" || return 1
+
+    echo "Cleaning previous builds..."
+    make mrproper
+
+    if [[ -f /boot/config-$(uname -r) ]]; then
+        cp /boot/config-$(uname -r) .config
+    fi
+
+    echo "Updating config..."
+    yes "" | make oldconfig
+
+    echo "Building kernel with $NUM_CORES cores..."
+    make -j"$NUM_CORES"
+
+    echo "Building modules..."
+    sudo make modules_install
+
+    echo "Installing kernel..."
+    sudo make install
+
+    echo "Kernel rebuild finished!"
+    echo "You may want to update your bootloader and reboot."
+}

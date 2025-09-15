@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+to() {
+    TARGET="$1"
+
+    if [ -z "$TARGET" ]; then
+        cd ~
+        return
+    fi
+
+    SAFE_NAME=$(echo "$TARGET" | tr '/' '_')
+
+    mkdir -p "$HOME/.local/to"
+
+    if [ -f "$HOME/.local/to/$SAFE_NAME" ]; then
+        DIR=$(cat "$HOME/.local/to/$SAFE_NAME")
+        if [ "$DIR" != "$PWD" ] && [ -d "$DIR" ]; then
+            cd "$DIR" || echo "Directory not found: $DIR"
+            return
+        fi
+    fi
+
+    if [[ ! "$TARGET" == ..* ]]; then
+        echo "$TARGET" > "$HOME/.local/to/$SAFE_NAME"
+    fi
+
+    cd "$TARGET" || echo "Directory not found: $TARGET"
+}
